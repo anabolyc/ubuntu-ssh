@@ -87,4 +87,4 @@ ENV SSH_USER_PASSWORD_HASHED false
 ENV SSH_USER_SHELL "/bin/bash"
 ENV SSH_USER_ID "500:500"
 
-CMD ["/usr/bin/supervisord", "--configuration=/etc/supervisord.conf"]
+CMD ["supervisord", "--configuration=/etc/supervisord.conf"]
