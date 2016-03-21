@@ -1,51 +1,19 @@
 # =============================================================================
-# jdeathe/centos-ssh
-#
-# CentOS-7 7.2.1511 x86_64 - SCL/EPEL/IUS Repos. / Supervisor / OpenSSH.
-# 
-# =============================================================================
-FROM centos:centos7.2.1511
+FROM ubuntu:14.04.4
 
-MAINTAINER James Deathe <james.deathe@gmail.com>
 
-# -----------------------------------------------------------------------------
-# Import the RPM GPG keys for Repositories
-# -----------------------------------------------------------------------------
-RUN rpm --import http://mirror.centos.org/centos/RPM-GPG-KEY-CentOS-7 \
-	&& rpm --import https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-7 \
-	&& rpm --import https://dl.iuscommunity.org/pub/ius/IUS-COMMUNITY-GPG-KEY
-
-# -----------------------------------------------------------------------------
-# Base Install
-# -----------------------------------------------------------------------------
-RUN rpm --rebuilddb \
-	&& yum -y install \
-	centos-release-scl \
-	centos-release-scl-rh \
-	epel-release \
-	https://centos7.iuscommunity.org/ius-release.rpm \
-	vim-minimal-7.4.160-1.el7 \
-	sudo-1.8.6p7-16.el7 \
-	openssh-6.6.1p1-23.el7_2 \
-	openssh-server-6.6.1p1-23.el7_2 \
-	openssh-clients-6.6.1p1-23.el7_2 \
-	python-setuptools-0.9.8-4.el7 \
-	yum-plugin-versionlock-1.1.31-34.el7 \
-	&& yum versionlock add \
-	vim-minimal \
+RUN apt-get update \
+	&& apt-get install -y \
 	sudo \
-	openssh \
 	openssh-server \
-	openssh-clients \
+	openssh-client \
 	python-setuptools \
-	yum-plugin-versionlock \
-	&& rm -rf /var/cache/yum/* \
-	&& yum clean all
+	&& rm -rf /var/cache/apt/*
 
 # -----------------------------------------------------------------------------
 # Install supervisord (required to run more than a single process in a container)
 # Note: EPEL package lacks /usr/bin/pidproxy
-# We require supervisor-stdout to allow output of services started by 
+# We require supervisor-stdout to allow output of services started by
 # supervisord to be easily inspected with "docker logs".
 # -----------------------------------------------------------------------------
 RUN easy_install 'supervisor == 3.2.0' 'supervisor-stdout == 0.1.1' \
@@ -54,8 +22,7 @@ RUN easy_install 'supervisor == 3.2.0' 'supervisor-stdout == 0.1.1' \
 # -----------------------------------------------------------------------------
 # UTC Timezone & Networking
 # -----------------------------------------------------------------------------
-RUN ln -sf /usr/share/zoneinfo/UTC /etc/localtime \
-	&& echo "NETWORKING=yes" > /etc/sysconfig/network
+#RUN ln -sf /usr/share/zoneinfo/UTC /etc/localtime
 
 # -----------------------------------------------------------------------------
 # Configure SSH for non-root public key authentication
@@ -98,11 +65,10 @@ RUN mkdir -p /etc/supervisord.d/ \
 # -----------------------------------------------------------------------------
 # Purge
 # -----------------------------------------------------------------------------
-RUN rm -rf /etc/ld.so.cache \ 
+RUN rm -rf /etc/ld.so.cache \
 	; rm -rf /sbin/sln \
 	; rm -rf /usr/{{lib,share}/locale,share/{man,doc,info,gnome/help,cracklib,il8n},{lib,lib64}/gconv,bin/localedef,sbin/build-locale-archive} \
-	; rm -rf /{root,tmp,var/cache/{ldconfig,yum}}/* \
-	; > /etc/sysconfig/i18n
+	; rm -rf /{root,tmp,var/cache/{ldconfig,yum}}/*
 
 EXPOSE 22
 
