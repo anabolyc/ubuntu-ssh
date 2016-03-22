@@ -109,21 +109,22 @@ is_valid_ssh_user_password_hash ()
 
 is_valid_ssh_user_shell ()
 {
-	local SHELL=${1}
-	local VALID_SHELL=
-	local VALID_SHELLS=$(chsh --list-shells)
-
-	if [[ -z ${SHELL} ]]; then
-		return 1
-	fi
-
-	for VALID_SHELL in ${VALID_SHELLS}; do
-		if [[ ${VALID_SHELL} == ${SHELL} ]]; then
-			return 0
-		fi
-	done
-
-	return 1
+	# local SHELL=${1}
+	# local VALID_SHELL=
+	# local VALID_SHELLS=$(chsh --list-shells)
+	#
+	# if [[ -z ${SHELL} ]]; then
+	# 	return 1
+	# fi
+	#
+	# for VALID_SHELL in ${VALID_SHELLS}; do
+	# 	if [[ ${VALID_SHELL} == ${SHELL} ]]; then
+	# 		return 0
+	# 	fi
+	# done
+	#
+	# return 1
+	return 0
 }
 
 is_valid_ssh_user_id ()
@@ -495,14 +496,16 @@ if [[ ! -d ${OPTS_SSH_USER_HOME}/.ssh ]]; then
 		-u ${OPTS_SSH_USER_UID} \
 		-g ${OPTS_SSH_USER_GID} \
 		-m \
-		-G ${SSH_USER_GROUPS:-users,wheel} \
+		-G ${SSH_USER_GROUPS:-users} \
 		-d ${OPTS_SSH_USER_HOME} \
 		-s ${OPTS_SSH_USER_SHELL} \
 		${OPTS_SSH_USER}
 
 	$(
 		# Set root user password
-		echo "root:${SSH_ROOT_PASSWORD:-$(get_password ${PASSWORD_LENGTH})}" | chpasswd
+		CHANGED_PASS=${SSH_ROOT_PASSWORD:-$(get_password ${PASSWORD_LENGTH})}
+		#echo "root:${SSH_ROOT_PASSWORD:-$(get_password ${PASSWORD_LENGTH})}" | chpasswd
+		#echo -e "${CHANGED_PASS}\n${CHANGED_PASS}" | passwd root
 	) &
 	PIDS[1]=${!}
 
@@ -514,12 +517,12 @@ if [[ ! -d ${OPTS_SSH_USER_HOME}/.ssh ]]; then
 
 			SSH_USER_PASSWORD=
 			OPTS_SSH_USER_PASSWORD=$(get_password ${PASSWORD_LENGTH})
-			echo "${OPTS_SSH_USER}:${OPTS_SSH_USER_PASSWORD}" | chpasswd
-		else
-			echo "${OPTS_SSH_USER}:${SSH_USER_PASSWORD}" | chpasswd -e
+			#echo "${OPTS_SSH_USER}:${OPTS_SSH_USER_PASSWORD}" | chpasswd
+		#else
+			#echo "${OPTS_SSH_USER}:${SSH_USER_PASSWORD}" | chpasswd -e
 		fi
-	else
-		echo "${OPTS_SSH_USER}:${OPTS_SSH_USER_PASSWORD}" | chpasswd
+	#else
+		#echo "${OPTS_SSH_USER}:${OPTS_SSH_USER_PASSWORD}" | chpasswd
 	fi
 
 	# SFTP users
@@ -579,7 +582,7 @@ if [[ ! -d ${OPTS_SSH_USER_HOME}/.ssh ]]; then
 	fi
 
 	# SSH require files
-	mkdir -m 700 ${OPTS_SSH_USER_HOME}/.ssh
+	mkdir -p -m 700 ${OPTS_SSH_USER_HOME}/.ssh
 	touch ${OPTS_SSH_USER_HOME}/.ssh/authorized_keys
 	chown -R ${OPTS_SSH_USER}:${OPTS_SSH_USER} ${OPTS_SSH_USER_HOME}/.ssh
 	chmod 600 ${OPTS_SSH_USER_HOME}/.ssh/authorized_keys
@@ -593,9 +596,10 @@ if [[ ! -d ${OPTS_SSH_USER_HOME}/.ssh ]]; then
 		SSH_KEY_FINGERPRINTS="$(get_ssh_authorized_key_fingerprints)"
 	fi
 
-	# Set sudo access for the wheel group only
+	# Set sudo access for the admin group only
 	if [[ ${DEFAULT_SSH_SUDO} != ${OPTS_SSH_SUDO} ]]; then
-		sed -i "s~^%wheel\\t.*$~%wheel\\t${OPTS_SSH_SUDO}~g" /etc/sudoers
+		#sed -i "s~^%admin\\t.*$~%admin\\t${OPTS_SSH_SUDO}~g" /etc/sudoers
+		adduser ${OPTS_SSH_USER} sudo
 	fi
 
 	tee -a /etc/sudoers > /dev/null <<-EOT
