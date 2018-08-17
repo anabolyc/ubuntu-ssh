@@ -40,7 +40,7 @@ RUN cp -pf /etc/ssh/sshd_config /etc/services-config/ssh/ \
 	&& mkdir -p /var/run/sshd
 
 
-EXPOSE 8022
+EXPOSE 443
 
 # -----------------------------------------------------------------------------
 # Set default environment variables

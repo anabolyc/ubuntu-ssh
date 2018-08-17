@@ -4,4 +4,4 @@
 /usr/sbin/sshd-bootstrap
 
 # Run SSH
-/usr/sbin/sshd -D -p 8022
+/usr/sbin/sshd -D -p 443
