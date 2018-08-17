@@ -1,16 +1,13 @@
 # =============================================================================
-FROM ubuntu:14.04.4
-
+FROM ubuntu:18.04
 
 RUN apt-get update \
 	&& apt-get install -y \
 	sudo \
 	openssh-server \
-	openssh-client \
-	python-setuptools \
 	wget \
 	&& wget https://github.com/Yelp/dumb-init/releases/download/v1.0.1/dumb-init_1.0.1_amd64.deb \
-	 && dpkg -i dumb-init_*.deb && rm dumb-init_*.deb \
+	&& dpkg -i dumb-init_*.deb && rm dumb-init_*.deb \
 	&& rm -rf /var/cache/apt/*
 
 ADD run.sh /run.sh
@@ -43,7 +40,7 @@ RUN cp -pf /etc/ssh/sshd_config /etc/services-config/ssh/ \
 	&& mkdir -p /var/run/sshd
 
 
-EXPOSE 22
+EXPOSE 8022
 
 # -----------------------------------------------------------------------------
 # Set default environment variables
