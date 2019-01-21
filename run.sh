@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Configure SSH
-/usr/sbin/sshd-bootstrap
+/bin/bash /usr/sbin/sshd-bootstrap
 
 # Run SSH
 /usr/sbin/sshd -D -p 443

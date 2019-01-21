@@ -4,6 +4,7 @@ FROM ubuntu:18.04
 RUN apt-get update \
 	&& apt-get install -y \
 	sudo \
+	nano \
 	openssh-server \
 	wget \
 	&& wget https://github.com/Yelp/dumb-init/releases/download/v1.0.1/dumb-init_1.0.1_amd64.deb \

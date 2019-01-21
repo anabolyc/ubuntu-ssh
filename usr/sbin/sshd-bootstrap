@@ -407,30 +407,12 @@ generate_ssh_host_keys ()
 	local REPLACE=${1:-false}
 	local VERSION="${2:-}"
 
-	if [[ -z ${VERSION} ]] && [[ -e /etc/redhat-release ]]; then
-		VERSION=$(rpm -q --whatprovides redhat-release --queryformat "%{VERSION}")
-	else
-		echo "ERROR: Unknown EL release."
-		return 1
-	fi
+	generate_ssh_host_key ${REPLACE} rsa1
+	generate_ssh_host_key ${REPLACE} rsa
+	generate_ssh_host_key ${REPLACE} dsa
+	generate_ssh_host_key ${REPLACE} ecdsa
+	generate_ssh_host_key ${REPLACE} ed25519
 
-	case ${VERSION} in
-		6)
-			generate_ssh_host_key ${REPLACE} rsa1
-			generate_ssh_host_key ${REPLACE} rsa
-			generate_ssh_host_key ${REPLACE} dsa
-			;;
-		7)
-			generate_ssh_host_key ${REPLACE} rsa1
-			generate_ssh_host_key ${REPLACE} rsa
-			generate_ssh_host_key ${REPLACE} dsa
-			generate_ssh_host_key ${REPLACE} ecdsa
-			generate_ssh_host_key ${REPLACE} ed25519
-			;;
-		*)
-			echo "Unknown EL release ${VERSION} - skipping."
-			;;
-	esac
 }
 
 OPTS_SSH_INHERIT_ENVIRONMENT=${SSH_INHERIT_ENVIRONMENT:-false}
@@ -478,8 +460,7 @@ if [[ ! -d ${OPTS_SSH_USER_HOME}/.ssh ]]; then
 	$(
 		# Generate new host keys
 		generate_ssh_host_keys
-	) &
-	PIDS[0]=${!}
+	)
 
 	# Create base directory for home
 	if [[ -n ${OPTS_SSH_USER_HOME%/*} ]] && [[ ! -d ${OPTS_SSH_USER_HOME%/*} ]]; then
@@ -506,8 +487,7 @@ if [[ ! -d ${OPTS_SSH_USER_HOME}/.ssh ]]; then
 		CHANGED_PASS=${SSH_ROOT_PASSWORD:-$(get_password ${PASSWORD_LENGTH})}
 		#echo "root:${SSH_ROOT_PASSWORD:-$(get_password ${PASSWORD_LENGTH})}" | chpasswd
 		#echo -e "${CHANGED_PASS}\n${CHANGED_PASS}" | passwd root
-	) &
-	PIDS[1]=${!}
+	)
 
 	# Set SSH user password
 	if [[ ${OPTS_SSH_USER_PASSWORD_HASHED} == true ]] && [[ -n ${SSH_USER_PASSWORD} ]]; then
@@ -609,9 +589,7 @@ if [[ ! -d ${OPTS_SSH_USER_HOME}/.ssh ]]; then
 	EOT
 
 	# Wait for background processes
-	wait ${PIDS[0]} && \
-		SSH_HOST_KEY_FINGERPRINT_RSA="$(get_ssh_host_key_fingerprint rsa)"
-	wait ${PIDS[1]}
+	SSH_HOST_KEY_FINGERPRINT_RSA="$(get_ssh_host_key_fingerprint rsa)"
 
 	# Never store the root password
 	SSH_ROOT_PASSWORD=${REDACTED_VALUE}
